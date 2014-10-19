@@ -1,52 +1,4 @@
 ﻿<?php 
-function xml2array(&$string) {
-    $parser = xml_parser_create();
-    xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-    xml_parse_into_struct($parser, $string, $vals, $index);
-    xml_parser_free($parser);
-
-    $mnary=array();
-    $ary=&$mnary;
-    foreach ($vals as $r) {
-        $t=$r['tag'];
-        if ($r['type']=='open') {
-            if (isset($ary[$t])) {
-                if (isset($ary[$t][0])) $ary[$t][]=array(); else $ary[$t]=array($ary[$t], array());
-                $cv=&$ary[$t][count($ary[$t])-1];
-            } else $cv=&$ary[$t];
-            if (isset($r['attributes'])) {foreach ($r['attributes'] as $k=>$v) $cv['_a'][$k]=$v;}
-            $cv['_c']=array();
-            $cv['_c']['_p']=&$ary;
-            $ary=&$cv['_c'];
-
-        } elseif ($r['type']=='complete') {
-            if (isset($ary[$t])) { // same as open
-                if (isset($ary[$t][0])) $ary[$t][]=array(); else $ary[$t]=array($ary[$t], array());
-                $cv=&$ary[$t][count($ary[$t])-1];
-            } else $cv=&$ary[$t];
-            if (isset($r['attributes'])) {foreach ($r['attributes'] as $k=>$v) $cv['_a'][$k]=$v;}
-            $cv['_v']=(isset($r['value']) ? $r['value'] : '');
-
-        } elseif ($r['type']=='close') {
-            $ary=&$ary['_p'];
-        }
-    }    
-    
-    _del_p($mnary);
-    return $mnary;
-}
-
-// _Internal: Remove recursion in result array
-function _del_p(&$ary) {
-    foreach ($ary as $k=>$v) {
-        if ($k==='_p') unset($ary[$k]);
-        elseif (is_array($ary[$k])) _del_p($ary[$k]);
-    }
-}
-
-function is_ip($str){
-	return preg_match( "/^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/", $str);
-}
 
 $ip = $_SERVER['REMOTE_ADDR'];
 $webService = false;
@@ -54,8 +6,6 @@ if (!empty($_GET['ip']) && is_ip($_GET['ip'])){
 	$ip = $_GET['ip'];
 	$webService = true;
 }
-
-
 
 $xml = file_get_contents("http://api.hostip.info/?ip=$ip");
 $arr = xml2array($xml);
@@ -73,13 +23,8 @@ if (!empty($coordinates)){
 }
 ?>
 <?php if (!$webService){?>
-<?php
-echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" 
-	\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
-
-?>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html>
 <head>
 	<title>Koks mano išorinis IP adresas?</title>
 	<meta name="description" content="Koks mano IP adresas? Sužinok!"/>
@@ -89,8 +34,7 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <body>
 	<div id="site_wrapper">
         <h1>Koks yra mano išorinis IP adresas?</h1>
-        <hr /><br/>
-        <div class="ip">Tavo išorinis IP adresas yra: <strong><?php echo $ip;?></strong></div>
+        <div class="ip ip-main">Tavo išorinis IP adresas yra: <strong><?php echo $ip;?></strong></div>
 		<div class="ip">
 			<strong>Papildoma informacija:</strong><br/>
 		    Miestas: 
@@ -111,7 +55,8 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
         <hr/>
         <div class="footer">
 			<div class="left">
-				<div>&copy;&nbsp;2009&nbsp;<a href="http://www.kran.lt" title="kran">kran.lt</a> &nbsp;|&nbsp; <a href="http://ip.kran.lt/">Koks mano išorinis IP adresas?</a> v. 0.1</div>
+				<div>&copy;&nbsp;2009 - 2014&nbsp;<a href="http://www.kran.lt" title="kran">kran.lt</a> 
+				&nbsp;|&nbsp; <a href="http://ip.kran.lt/">Koks mano išorinis IP adresas?</a> v. 1.0</div>
 				<div class="links">
 					<a href="http://www.bajeriukai.lt" title="Lietuviškas humoras">Bajeriukai</a>
 					&nbsp;|&nbsp;
@@ -165,4 +110,52 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"; ?>
 		<lat><?php echo $lat?></lat>
 	</coordinates>
 </ipinfo>
-<?php } ?>
+<?php } 
+function xml2array(&$string) {
+    $parser = xml_parser_create();
+    xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
+    xml_parse_into_struct($parser, $string, $vals, $index);
+    xml_parser_free($parser);
+
+    $mnary=array();
+    $ary=&$mnary;
+    foreach ($vals as $r) {
+        $t=$r['tag'];
+        if ($r['type']=='open') {
+            if (isset($ary[$t])) {
+                if (isset($ary[$t][0])) $ary[$t][]=array(); else $ary[$t]=array($ary[$t], array());
+                $cv=&$ary[$t][count($ary[$t])-1];
+            } else $cv=&$ary[$t];
+            if (isset($r['attributes'])) {foreach ($r['attributes'] as $k=>$v) $cv['_a'][$k]=$v;}
+            $cv['_c']=array();
+            $cv['_c']['_p']=&$ary;
+            $ary=&$cv['_c'];
+
+        } elseif ($r['type']=='complete') {
+            if (isset($ary[$t])) { // same as open
+                if (isset($ary[$t][0])) $ary[$t][]=array(); else $ary[$t]=array($ary[$t], array());
+                $cv=&$ary[$t][count($ary[$t])-1];
+            } else $cv=&$ary[$t];
+            if (isset($r['attributes'])) {foreach ($r['attributes'] as $k=>$v) $cv['_a'][$k]=$v;}
+            $cv['_v']=(isset($r['value']) ? $r['value'] : '');
+
+        } elseif ($r['type']=='close') {
+            $ary=&$ary['_p'];
+        }
+    }    
+    
+    _del_p($mnary);
+    return $mnary;
+}
+
+// _Internal: Remove recursion in result array
+function _del_p(&$ary) {
+    foreach ($ary as $k=>$v) {
+        if ($k==='_p') unset($ary[$k]);
+        elseif (is_array($ary[$k])) _del_p($ary[$k]);
+    }
+}
+
+function is_ip($str){
+	return preg_match( "/^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/", $str);
+}

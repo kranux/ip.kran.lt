@@ -6,5 +6,7 @@ div.ip {padding: 10px; border: 1px solid #ccc; font-size: 16px;}
 
 div.ip strong {color: green;}
 
+.ip-main{margin-bottom:5px;}
+
 .left{float:left;}
 .right{float:right;}
